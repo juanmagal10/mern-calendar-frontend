@@ -1,11 +1,11 @@
 import { Calendar} from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-import {localizer,getMessages} from '../../helpers'
+import {localizer,getMessages, useAuthStore} from '../../helpers'
 
 import { Navbar } from "../components/Navbar";
 import { CalendarEvent } from '../components/CalendarEvent';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarModal } from '../components/CalendarModal';
 import { useUiStore } from '../../hooks/useUiStore';
 import { useCalendarStore } from '../../hooks/useCalendarStore';
@@ -18,40 +18,48 @@ import { FabDelete } from '../components/FabDelete';
 
 
 
+
 export const CalendarPage = () => {
+  const {user}=useAuthStore()
   const { openDateModal, closeDateModal } = useUiStore();
-  const { events, setActiveEvent } = useCalendarStore();
+  const { events, setActiveEvent, startLoadingEvents } = useCalendarStore();
 
   
   
   
-  const [lastView, setLastView]=useState(localStorage.getItem('lastView')||'week')
+  const [lastView, setLastView] = useState(localStorage.getItem('lastView') || 'week')
   
   const eventStyleGetter = (event, start, end, isSelected) => {
+    const isMyEvent = (user.uid === event.user._id) || (user.uid === event.user.uid);
+
     const style = {
-      backgroundColor: '#347c7f',
+      backgroundColor: isMyEvent ? '#347c7f' :'#465660',
       borderRadius: '0px',
       opacity: 0.8,
-      color:'white'
-    }
+      color: 'white'
+    };
 
     
     return {
-      style 
-    }
-  }
+      style
+    };
+  };
+
+  useEffect(() => {
+    startLoadingEvents()
+  }, []);
   
   const onDoubleClick = (event) => {
     openDateModal();
-  }
+  };
 
   const onSelect = (event) => {
     setActiveEvent(event);
-  }
+  };
 
   const onViewChanged = (event) => {
     localStorage.setItem('lastView', event)
-  }
+  };
 
   return (
     <>
@@ -68,7 +76,7 @@ export const CalendarPage = () => {
         messages={getMessages()}
         eventPropGetter={eventStyleGetter}
         components={{
-          event:CalendarEvent
+          event: CalendarEvent
         }}
         onDoubleClickEvent={onDoubleClick}
         onSelectEvent={onSelect}
@@ -81,5 +89,5 @@ export const CalendarPage = () => {
  
     </>
   )
-}
+};
 
